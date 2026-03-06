@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Recommendations | Resume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Job Recommendations</h1>
+        <p>AI-powered jobs based on your evaluations</p>
+    </div>
+
+    <div class="container" style="margin-top: 0;">
+        {% if error %}
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <svg width="48" height="48" fill="none" stroke="var(--text-muted)" stroke-width="1.5" viewBox="0 0 24 24"
+                style="margin: 0 auto 15px; display: block;">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                </path>
+            </svg>
+            <p style="color: var(--text-muted);">{{ error }}</p>
+            <a href="/" class="btn-primary"
+                style="margin-top: 15px; display: inline-block; text-decoration: none;">Analyze a Resume</a>
+        </div>
+
+        {% elif jobs %}
+        <div class="questions-grid">
+            {% for job in jobs %}
+            <div class="question-card" style="position: relative; overflow: hidden;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                    <h3 style="font-size: 1.15rem; font-weight: 700; margin: 0; line-height: 1.3;">{{ job.title }}</h3>
+                    <span
+                        class="badge {% if job.badge == 'High Match' %}badge-success{% elif job.badge == 'Good Fit' %}badge-primary{% else %}badge-warning{% endif %}"
+                        style="white-space: nowrap; margin-left: 8px; font-size: 0.7rem;">
+                        {{ job.badge }}
+                    </span>
+                </div>
+
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 14px; line-height: 1.6;">{{
+                    job.description }}</p>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 14px;">
+                    {% for skill in job.skills %}
+                    <span
+                        style="background: rgba(var(--primary-rgb, 139, 92, 246), 0.12); color: var(--primary); padding: 3px 10px; border-radius: 20px; font-size: 0.75rem; border: 1px solid rgba(139, 92, 246, 0.2);">{{
+                        skill }}</span>
+                    {% endfor %}
+                </div>
+
+                <div
+                    style="display: flex; align-items: center; gap: 6px; color: var(--text-muted); font-size: 0.85rem; font-weight: 600;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
+                        </path>
+                    </svg>
+                    {{ job.salary }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <div class="card" style="text-align: center; padding: 40px 20px;">
+            <p style="color: var(--text-muted);">No evaluations found to base recommendations on. Analyze a resume
+                first!</p>
+            <a href="/" class="btn-primary"
+                style="margin-top: 15px; display: inline-block; text-decoration: none;">Analyze a Resume</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="bottom-nav">
+        <a href="/" class="nav-item">
+            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                </path>
+            </svg>
+            <span>DASHBOARD</span>
+        </a>
+        <a href="/history" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+            </svg>
+            <span>HISTORY</span>
+        </a>
+        <a href="/jobs" class="nav-item active">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                </path>
+            </svg>
+            <span>JOBS</span>
+        </a>
+        <a href="#" onclick="shareApp()" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z">
+                </path>
+            </svg>
+            <span>SHARE</span>
+        </a>
+        <a href="/settings" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>SETTINGS</span>
+        </a>
+    </nav>
+    <script>
+        function shareApp() {
+            const shareData = {
+                title: 'Resume Matcher App',
+                text: 'Check out this awesome AI Resume Matcher!',
+                url: '{{ server_base_url }}'
+            };
+            if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
+                navigator.share(shareData).catch(console.error);
+            } else {
+                navigator.clipboard.writeText(shareData.url)
+                    .then(() => alert('App link copied to clipboard!'))
+                    .catch(console.error);
+            }
+        }
+    </script>
+</body>
+
+</html>

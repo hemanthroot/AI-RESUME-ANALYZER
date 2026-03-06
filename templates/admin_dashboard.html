@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Resume Matcher</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .admin-header {
+            background: linear-gradient(135deg, #1e1b4b 0%, #2d1b69 50%, #1e1b4b 100%);
+            padding: 28px 24px 90px;
+            text-align: center;
+            position: relative;
+        }
+
+        .admin-header-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(139, 92, 246, 0.25);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #c4b5fd;
+            border-radius: 50px;
+            padding: 5px 14px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+        }
+
+        .admin-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .admin-header p {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 8px 0 0;
+            font-size: 0.95rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 16px;
+            margin-top: -60px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 18px 14px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 0 14px;
+        }
+
+        .section-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary);
+            flex-shrink: 0;
+        }
+
+        .admin-table-wrap {
+            overflow-x: auto;
+            border-radius: 14px;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        th {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 12px 14px;
+            text-align: left;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            font-weight: 700;
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            vertical-align: middle;
+            color: var(--text-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(139, 92, 246, 0.05);
+        }
+
+        .score-pill {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .score-high {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+
+        .score-low {
+            background: rgba(239, 68, 68, 0.12);
+            color: var(--danger);
+        }
+
+        .session-tag {
+            font-family: monospace;
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 2px 8px;
+            border-radius: 6px;
+            color: var(--text-muted);
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            display: inline-block;
+        }
+
+        .logout-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.25);
+            color: var(--danger);
+            border-radius: 10px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.22);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1.5px solid var(--border-color);
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: rgba(139, 92, 246, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+    <!-- Admin Header -->
+    <div class="admin-header">
+        <div class="admin-header-badge">🛡️ Admin Panel</div>
+        <h1>Admin Dashboard</h1>
+        <p>Complete view of all users &amp; candidates</p>
+        <a href="/admin/logout" class="logout-btn" style="position:absolute; top:20px; right:16px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+        </a>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_history }}</div>
+            <div class="stat-label">Total Scans</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.total_candidates }}</div>
+            <div class="stat-label">Candidates</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.avg_score }}%</div>
+            <div class="stat-label">Avg. Score</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">{{ stats.unique_sessions }}</div>
+            <div class="stat-label">Unique Users</div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" style="margin-top: 0; padding-bottom: 120px;">
+
+        <!-- Usage Chart -->
+        <div class="chart-card">
+            <h3 style="margin-top: 0; color: rgba(255,255,255,0.9); font-size: 1.1rem; margin-bottom: 16px;">App Usage
+                Breakdown</h3>
+            <div style="max-width: 260px; margin: 0 auto; position: relative;">
+                <canvas id="usageChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabs -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tab-history-btn" onclick="switchTab('history')">
+                📋 All History ({{ history|length }})
+            </button>
+            <button class="tab-btn" id="tab-candidates-btn" onclick="switchTab('candidates')">
+                👥 All Candidates ({{ candidates|length }})
+            </button>
+        </div>
+
+        <!-- History Tab -->
+        <div class="tab-content active" id="tab-history">
+            {% if history %}
+            <div class="admin-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>File</th>
+                            <th>Score</th>
+                            <th>Device</th>
+                            <th>Session</th>
+                            <th>Job Desc.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in history %}
+                        <tr>
+                            <td style="color:var(--text-muted); font-size:0.78rem;">{{ item.id }}</td>
+                            <td>
+                                <div
+                                    style="font-weight:600; max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                    {{ item.filename }}</div>
+                            </td>
+                            <td>
+                                <span
+                                    class="score-pill {% if item.ats_score > 70 %}score-high{% else %}score-low{% endif %}">
+                                    {{ item.ats_score }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if item.device_type == 'Mobile' %}📱{% else %}💻{% endif %}
+                                <span style="font-size:0.78rem; color:var(--text-muted);">{{ item.device_type }}</span>
+                            </td>
+                            <td>
+                                <span class="session-tag" title="{{ item.session_id }}">{{ item.session_id[:8] if
+                                    item.session_id else '—' }}...</span>
+                            </td>
+                            <td
+                                style="max-width:160px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--text-muted); font-size:0.8rem;">
+                                {{ item.job_description[:60] if item.job_description else '—' }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="empty-state">No history records found.</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Candidates Tab -->
+        <div class="tab-content" id="tab-candidates">
+            {% if candidates %}
+            <div class="admin-table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Score</th>
+                            <th>Recommendation</th>
+                            <th>Session</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cand in candidates %}
+                        <tr>
+                            <td style="color:var(--text-muted); font-size:0.78rem;">{{ cand.id }}</td>
+                            <td style="font-weight:600;">{{ cand.name }}</td>
+                            <td style="color:var(--text-muted); font-size:0.82rem;">{{ cand.email }}</td>
+                            <td style="color:var(--text-muted); font-size:0.82rem;">{{ cand.phone }}</td>
+                            <td>
+                                <span
+                                    class="score-pill {% if cand.ats_score > 70 %}score-high{% else %}score-low{% endif %}">
+                                    {{ cand.ats_score }}%
+                                </span>
+                            </td>
+                            <td>
+                                <span
+                                    class="badge {% if 'strong' in cand.recommendation.lower() %}badge-success{% else %}badge-primary{% endif %}"
+                                    style="font-size:0.72rem;">
+                                    {{ cand.recommendation }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="session-tag" title="{{ cand.session_id }}">{{ cand.session_id[:8] if
+                                    cand.session_id else '—' }}...</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="card">
+                <div class="empty-state">No candidates found.</div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="/" class="nav-item">
+            <svg class="nav-icon" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                    d="M5 3a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2V5a2 2 0 00-2-2H5zM5 11a2 2 0 00-2 2v2a2 2 0 002 2h2a2 2 0 002-2v-2a2 2 0 00-2-2H5zM11 5a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V5zM11 13a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z">
+                </path>
+            </svg>
+            <span>DASHBOARD</span>
+        </a>
+        <a href="/history" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z">
+                </path>
+            </svg>
+            <span>HISTORY</span>
+        </a>
+        <a href="/candidates" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z">
+                </path>
+            </svg>
+            <span>CANDIDATES</span>
+        </a>
+        <a href="/admin" class="nav-item active">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                </path>
+            </svg>
+            <span>ADMIN</span>
+        </a>
+        <a href="/settings" class="nav-item">
+            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+                </path>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+            <span>SETTINGS</span>
+        </a>
+    </nav>
+
+    <script>
+        function switchTab(name) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + name).classList.add('active');
+            document.getElementById('tab-' + name + '-btn').classList.add('active');
+        }
+
+        // Initialize Pie Chart
+        const ctx = document.getElementById('usageChart').getContext('2d');
+        const uniqueUsers = {{ stats.unique_sessions }};
+        const totalScans = {{ stats.total_history }};
+        const repeatScans = Math.max(0, totalScans - uniqueUsers);
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Unique Users', 'Repeat Scans'],
+                datasets: [{
+                    data: [uniqueUsers, repeatScans],
+                    backgroundColor: [
+                        '#10b981', // green
+                        '#8b5cf6'  // purple
+                    ],
+                    borderColor: '#1e1b4b',
+                    borderWidth: 2,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                cutout: '65%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#9ca3af',
+                            font: { size: 12 },
+                            padding: 20
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

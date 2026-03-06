@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ candidate.name }} - Resume Matcher Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="header">
+        <h1>Candidate Profile</h1>
+        <p>Resume Matcher Analysis</p>
+    </div>
+
+    <div class="container"
+        style="margin-top: 0; min-height: 70vh; display: flex; align-items: center; justify-content: center;">
+        <div class="card"
+            style="text-align: center; max-width: 500px; width: 100%; position: relative; overflow: hidden; padding: 40px 20px;">
+            <!-- Glow effect behind the card content -->
+            <div
+                style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%); width: 200px; height: 200px; background: radial-gradient(circle, var(--primary) 0%, transparent 70%); opacity: 0.15; z-index: 0; border-radius: 50%;">
+            </div>
+
+            <div style="position: relative; z-index: 1;">
+                <div class="score-circle"
+                    style="--score: {{ candidate.ats_score }}; margin: 0 auto 20px auto; width: 120px; height: 120px; border-width: 10px;">
+                    <span class="score-value" style="font-size: 2rem;">{{ candidate.ats_score }}%</span>
+                </div>
+
+                <h2
+                    style="font-size: 2rem; margin-bottom: 10px; background: var(--gradient-text); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 800;">
+                    {{ candidate.name }}</h2>
+
+                <div style="margin-bottom: 30px;">
+                    <span
+                        class="badge {% if candidate.recommendation == 'Strong Hire' %}badge-success{% else %}badge-primary{% endif %}"
+                        style="font-size: 1rem; padding: 8px 16px;">
+                        {{ candidate.recommendation }}
+                    </span>
+                </div>
+
+                <div
+                    style="color: var(--text-muted); font-size: 1rem; line-height: 1.8; margin-bottom: 30px; background: rgba(255, 255, 255, 0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);">
+                    <div>📧 {{ candidate.email }}</div>
+                    <div>📱 {{ candidate.phone }}</div>
+                </div>
+
+                <a href="/" class="btn-primary"
+                    style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none;">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
+                        </path>
+                    </svg>
+                    Try Resume Matcher
+                </a>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
