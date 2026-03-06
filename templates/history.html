@@ -77,17 +77,7 @@
             </svg>
             <span>CANDIDATES</span>
         </a>
-        <!-- ADMIN conditionally displayed -->
-        {% if session.get('is_admin') %}
-        <a href="/admin" class="nav-item">
-            <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
-                </path>
-            </svg>
-            <span>ADMIN</span>
-        </a>
-        {% endif %}
+
         <a href="/settings" class="nav-item">
             <svg class="nav-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round"
@@ -100,10 +90,11 @@
     </nav>
     <script>
         function shareApp() {
+            const shareUrl = window.location.origin + '/?ref={{ session.get("user_session_id", "") }}';
             const shareData = {
                 title: 'Resume Matcher App',
                 text: 'Check out this awesome AI Resume Matcher!',
-                url: '{{ server_base_url }}'
+                url: shareUrl
             };
             if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
                 navigator.share(shareData).catch(console.error);

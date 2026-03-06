@@ -15,9 +15,13 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # Load environment variables
 load_dotenv()
 
-# Initialize Admin Dataabase
+def get_db_path():
+    if os.environ.get("VERCEL") == "1":
+        return "/tmp/admins.db"
+    return "admins.db"
+
 def init_admin_db():
-    conn = sqlite3.connect('admins.db')
+    conn = sqlite3.connect(get_db_path())
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS admins
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,6 +102,13 @@ def get_device_type(user_agent):
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    session_id = get_or_create_session_id()
+    
+    # Capture referral link if present
+    ref = request.args.get('ref')
+    if ref and ref != session_id:
+        session['referred_by'] = ref
+        
     result = None
 
     if request.method == "POST":
@@ -158,13 +169,15 @@ Resume Text:
                         # 1. Save to Candidates if recommended (do this first to get candidate_id)
                         rec = result.get("recommendation", "")
                         if "strong match" in rec.lower() or "interview recommended" in rec.lower():
+                            # Assign to referrer if referred, otherwise self
+                            candidate_owner = session.get('referred_by', session_id)
                             cand_res = supabase.table('candidates').insert({
                                 "name": result.get("candidate_name", "Unknown"),
                                 "email": result.get("email", "Not Provided"),
                                 "phone": result.get("phone", "Not Provided"),
                                 "ats_score": result.get("ats", 0),
                                 "recommendation": rec,
-                                "session_id": session_id
+                                "session_id": candidate_owner
                             }).execute()
                             if cand_res.data:
                                 saved_candidate_id = cand_res.data[0]["id"]
@@ -424,6 +437,7 @@ def admin_dashboard():
     
     all_history = []
     all_candidates = []
+    all_users = []
     stats = {"total_history": 0, "total_candidates": 0, "avg_score": 0, "unique_sessions": 0}
     
     if supabase:
@@ -433,7 +447,33 @@ def admin_dashboard():
             stats["total_history"] = len(all_history)
             if all_history:
                 stats["avg_score"] = round(sum(h.get('ats_score', 0) for h in all_history) / len(all_history), 1)
-                stats["unique_sessions"] = len(set(h.get('session_id', '') for h in all_history if h.get('session_id')))
+                
+                user_dict = {}
+                for h in all_history:
+                    sid = h.get('session_id')
+                    if not sid: continue
+                    if sid not in user_dict:
+                        user_dict[sid] = {
+                            "session_id": sid,
+                            "scans": 0,
+                            "avg_score": 0,
+                            "devices": set(),
+                            "last_active": h.get('created_at', 'Unknown')
+                        }
+                    
+                    user_dict[sid]["scans"] += 1
+                    user_dict[sid]["avg_score"] += h.get('ats_score', 0)
+                    if h.get('device_type'):
+                        user_dict[sid]["devices"].add(h['device_type'])
+                
+                all_users = list(user_dict.values())
+                for u in all_users:
+                    if u["scans"] > 0:
+                        u["avg_score"] = round(u["avg_score"] / u["scans"], 1)
+                    u["devices"] = ", ".join(u["devices"])
+                
+                all_users.sort(key=lambda x: x["scans"], reverse=True)
+                stats["unique_sessions"] = len(all_users)
         except Exception as e:
             print("Admin history fetch error:", e)
         
@@ -455,7 +495,7 @@ def admin_dashboard():
         except Exception as e:
             print("Admin candidates fetch error:", e)
     
-    return render_template("admin_dashboard.html", history=all_history, candidates=all_candidates, stats=stats)
+    return render_template("admin_dashboard.html", history=all_history, candidates=all_candidates, users=all_users, stats=stats)
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():

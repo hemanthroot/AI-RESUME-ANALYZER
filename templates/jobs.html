@@ -121,10 +121,11 @@
     </nav>
     <script>
         function shareApp() {
+            const shareUrl = window.location.origin + '/?ref={{ session.get("user_session_id", "") }}';
             const shareData = {
                 title: 'Resume Matcher App',
                 text: 'Check out this awesome AI Resume Matcher!',
-                url: '{{ server_base_url }}'
+                url: shareUrl
             };
             if (navigator.share && /Mobi|Android/i.test(navigator.userAgent)) {
                 navigator.share(shareData).catch(console.error);
